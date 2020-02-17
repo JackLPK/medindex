@@ -1,0 +1,2 @@
+sqlite3 database with columns:
+'id', 's_name', 't_name','f_name', 'price'

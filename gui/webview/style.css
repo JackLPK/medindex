@@ -1,0 +1,115 @@
+/* @font-face {
+    font-family: myfont;
+    src:url('fonts/NotoSerifCJKtc-Regular.otf');
+}
+
+@font-face {
+    font-family: myfontbold;
+    src:url('fonts/NotoSerifCJKtc-Bold.otf');
+} */
+
+#A4 {
+    position: relative;
+    border: 1px dotted red;
+    width: 595px;
+    height: 842px;
+}
+
+* {
+    border: 1px solid #222;
+    border: none;
+    font-size: 1em;
+    font-family: myfont;
+}
+
+#clinic {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    color: brown;
+    text-align: center;
+    font-size: 3em;
+    font-family: myfontbold;
+}
+
+#thescript {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    text-align: center;
+    font-size: 2em;
+    font-weight: 800;
+}
+
+#infos {
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 140%;
+    text-align: center;
+    margin-left: 2%;
+}
+
+.info-prompt {
+    /* border-style: dotted;
+    color: blue; */
+    /* border: 1px dotted blue; */
+    flex-basis: 15%;
+}
+
+.info-ans {
+    /* border: 1px dotted red; */
+    flex-basis: 32%;
+    border-bottom: 2px solid black;
+}
+
+#date{
+    font-size: 70%;
+    padding-top: 5px;
+
+}
+
+#ingredients {
+    display: flex;
+    flex-wrap: wrap;
+    padding-top: 10px;
+}
+
+.ingredient {
+    /* border: 1px solid cyan; */
+    font-size: 120%;
+    text-align: center;
+
+    margin-top: 5px;
+    margin-bottom: 5px;
+
+    padding-top: 5px;
+    padding-bottom: 5px;
+    flex-basis: 195px;
+}
+
+#filler-stuff {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+#filler-stuff>* {
+    font-size: 100%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.doctor-info {
+    position: absolute;
+    bottom: 5%;
+    font-size: 120%;
+    /* border: 1px dotted brown; */
+    display: flex;
+    flex-grow: 1;
+    padding-left: 2%;
+}
+
+#doctor-name {
+    border-bottom: 2px solid black;
+    margin-left: 5px;
+    display: flex;
+    flex-grow: 1;
+}
