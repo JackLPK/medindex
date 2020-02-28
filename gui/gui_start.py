@@ -2,207 +2,287 @@ import sys
 import os
 from bs4 import BeautifulSoup
 from pathlib import Path
-from PySide2 import QtWidgets
-from PySide2 import QtWebEngineWidgets
-from PySide2 import QtWidgets, QtCore, QtGui
-from mainwindow import Ui_MainWindow
+
 from datetime import datetime
-from medstore import MedStore
+from PySide2 import QtWebEngineWidgets
+from PySide2 import QtWidgets, QtCore, QtGui, QtSql
+from PySide2.QtCore import Qt
 
-class WebView(QtWidgets.QDialog):
-    def __init__(self, data, template_path, out_path):
-        super(WebView, self).__init__()
-        
-        view = QtWebEngineWidgets.QWebEngineView(None)
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(view)
-        self.setLayout(layout)
-        
-        self.setFixedSize(595*1.3, 842*1.1)
-        view.setZoomFactor(1.2)
-        
-        # 
-        with open(template_path, 'r') as f:
-            html_doc = f.read()
-            soup = BeautifulSoup(html_doc, 'lxml')
-            
-            # set stuff
-            soup.find(id='name').string = '{} ({})'.format(
-                data['patient name'], data['patient age'])
-            now = datetime.now()
-            # Can be replaced with date.strftime() 
-            soup.find(id='date').string = '{}/{}/{}/ {:#02d}:{}:{:#02d}'.format(
-                now.year, now.month, now.day, now.hour, now.minute, now.second
-            )
-            soup.find(id='sex').string = data['patient sex']
-            soup.find(id='days').string = data['days']
-            soup.find(id='doctor-name').string = data['doctor']
-            
-            # Fill ingredients
-            for _x in data['ingredients']:
-                _tag = soup.new_tag('div', **{'class': 'ingredient'})
-                _tag.string = '{} {} g'.format(_x[0], _x[1])
-                
-                soup.find(id='ingredients').append(_tag)
-                
-        # write file
-        with open(out_path, 'w') as f:
-            f.write(soup.prettify(formatter='html5'))
-            
-        # Load
-        view.load(QtCore.QUrl.fromLocalFile(str(out_path)) )
-        
-        print('done export')
-
+from medindex.gui.mainwindow import Ui_MainWindow
+from medindex.gui.spinboxdelegate import SpinBoxDelegate
+from medindex.gui.exportdialog import ExportDialog
+from medindex.gui.intablemodel import InTableModel
+from medindex.gui.sidetablemodel import SideTableModel
+from medindex.gui.outtablemodel import OutTableModel
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, my_paths):
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        self.set_in_table(my_paths['db'])
-        self.set_out_table()
-        self.set_search_bar()
-        self.set_add_button()
-        self.set_export_btn(my_paths['template'], my_paths['out'])
+        self.my_paths = my_paths
         
-    def set_in_table(self, db_path):
-        self.db = MedStore(db_path, 'tbl_meds')
-        self.in_data = self.db.get_everything()
+        self.in_table_model = InTableModel(self)
+        self.out_table_model = OutTableModel(self)
+        self.side_table_model = SideTableModel(self)
         
-        # Set Columns
-        self.column_names = [
-            'ID', 'Short Form', 'Custom Name', 'Full Name', 'Price'
-            ]
-        self.in_table.setColumnCount(len(self.column_names))
-        self.in_table.setHorizontalHeaderLabels(self.column_names)
-        
-        # Set Rows
-        self.in_table.setRowCount(self.db.nrows)
-
-        # Disable edit option
-        self.in_table.setEditTriggers(
-            QtWidgets.QAbstractItemView.NoEditTriggers)
-        
-        self.update_in_table()
-        
-        self.in_table.resizeColumnsToContents()
-        
-        # Set Signals
-        self.in_table.cellActivated.connect(self.add_to_out_table)
+        self.set_up()
+        self.info_from_template()
     
-    def add_to_out_table(self, row, col):
-        # Do Not add 'empty' item
-        if self.in_table.item(0, 0).text() == '':
-            return None
-        
-        # Do Not add existing item
-        for i in range(self.out_table.rowCount()):
-            if self.in_table.item(row, 0).text() == self.out_table.item(i, 0).text():
-                return None
-        
-        _last_row = self.out_table.rowCount()
-        self.out_table.insertRow(_last_row)
-
-        self.out_table.setItem(_last_row, 0, self.in_table.item(row, 0).clone())
-        self.out_table.setItem(_last_row, 1, self.in_table.item(row, 3).clone())
-        self.out_table.setItem(_last_row, 2, QtWidgets.QTableWidgetItem('1'))
-        self.out_table.setItem(_last_row, 3, self.in_table.item(row, 4).clone())
-        
-        self.out_table.resizeColumnsToContents()
-        
-        self.search_bar.clear()
-        self.search_bar.setFocus()
-
-    def update_in_table(self):
-        # Remove previous content
-        for row in range(self.in_table.rowCount()):
-            self.in_table.removeRow(0)
-
-        # Set Row Count
-        self.in_table.setRowCount(len(self.in_data))
-        
-        # Fill in content
-        for i, v1 in enumerate(self.in_data):
-            for j, v2 in enumerate(v1):
-                self.in_table.setItem(
-                    i, j, QtWidgets.QTableWidgetItem(str(v2))
-                    )
-        pass
     
-    def set_out_table(self):
-        # Label Columns
-        out_table_columns = ['ID', 'Full Name', 'Amount (g)', 'Price']
-        self.out_table.setColumnCount(len(out_table_columns))
-        self.out_table.setHorizontalHeaderLabels(out_table_columns)
-        # 
+    # fill main window user inputs with info from template
+    def info_from_template(self):
+        with open(self.my_paths['template'], 'r', encoding='utf-8') as f:
+            soup = BeautifulSoup(f, features='lxml')
+            self.doctor.setText(soup.find(id='doctor-name').string)
+            self.organisation.setText(soup.find(id='clinic').string)
+            self.instruction_for_meds.setText(soup.find(id='instruction').string)
+
+    # general stuff
+    def set_up(self):
+        self.setWindowTitle('MedIndex')
+
+        # stuff
+        self.patient_name_edit.setPlaceholderText('Some Body')
+        self.patient_sex.addItems(['Male', 'Female'])
+        self.instruction_for_meds.setPlaceholderText('Just Do it!')
+
+        self.btn_patient.clicked.connect(lambda : self.side_table_model.set_patient(self.patient_name_edit.text()))
+        self.patient_name_edit.returnPressed.connect(self.btn_patient.click)
         
-        # Disable edit option
-        self.out_table.setEditTriggers(
-            QtWidgets.QAbstractItemView.NoEditTriggers)
+        # search_bar
+        self.search_bar.textChanged.connect(self.in_table_model.search)
+        def search_bar_to_in_table():
+            self.in_table_view.setFocus()
+            self.in_table_view.selectRow(0)
+        self.search_bar.returnPressed.connect(search_bar_to_in_table)
         
-        # Slots
-        # For out table only
-        def on_cell_clicked(row, col):
-            if col == 2:
-                self.out_table.editItem(self.out_table.item(row, col))
+        # in_table
+        setattr(self.in_table_view, 'parent_receiver', self.event_receiver)
+        self.in_table_view.setModel(self.in_table_model)
+        self.in_table_view.verticalHeader().hide()
+
+        self.in_table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.in_table_view.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.in_table_view.resizeColumnsToContents()
+        
+        self.in_table_view.activated.connect(self.in_table_model.get_row)
+        self.in_table_model.shove_dict.connect(self.out_table_model.pull_dict)
+        self.in_table_model.shove_dict.connect(self.out_table_view.resizeColumnsToContents)
+        
+        # out_table
+        setattr(self.out_table_view, 'parent_receiver', self.event_receiver)
+        self.out_table_view.setModel(self.out_table_model)
+        self.out_table_view.verticalHeader().hide()
+        
+        self.out_table_view.resizeColumnsToContents()
+        self.out_table_model.layoutChanged.connect(self.out_table_view.resizeColumnsToContents)
+        
+        self.out_table_view.setItemDelegate(SpinBoxDelegate(self))
+ 
+        # side_table
+        self.side_table_view.setModel(self.side_table_model)
+        self.side_table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        # self.side_table_view.resizeColumnsToContents()
+        self.side_table_model.layoutChanged.connect(self.side_table_view.resizeColumnsToContents)
+        self.side_table_view.activated.connect(self.side_table_model.get_row)
+        self.side_table_model.shove_dict.connect(self.out_table_model.pull_dict)
+        self.side_table_model.shove_dict.connect(self.out_table_view.resizeColumnsToContents)
+
+        # btn_export
+        self.btn_export.clicked.connect(self.export)
+
+    def event_receiver(self, sender, key, keyboard_modifier=None, data=None):
+        
+        # Future: use signals
+        if sender == self.search_bar:
+            self.in_table_view.setFocus()
+        
+        elif sender == self.in_table_view:
+            if key == Qt.Key_Return and keyboard_modifier == Qt.ShiftModifier:
+                self.search_bar.setFocus()
+                self.search_bar.selectAll()
             else:
-                self.out_table.removeRow(row)
+                print('yes query')
+        
+        # Future: move this part to view
+        elif sender == self.out_table_view:
+            if key == Qt.Key_Backspace and keyboard_modifier == Qt.NoModifier:
+                print('out: backspace')
+                _rows = list(
+                    map(
+                        QtCore.QModelIndex.row, 
+                        self.out_table_view.selectedIndexes()
+                        )
+                    )
+                _rows = sorted(list(set(_rows)))
+                self.out_table_model.remove_rows(_rows)
+                self.out_table_view.selectRow(self.out_table_model.rowCount()-1)
+
+    @QtCore.Slot()
+    def export(self):
+        _out_data_1 = self.out_table_model.out_data()
+        _now = datetime.now()
+        
+        data_pack = {
+            'clinic': self.organisation.text(),
+            'name': self.patient_name_edit.text(),
+            'age': self.patient_age.value(),
+            'sex': self.patient_sex.currentText(),
+            'date': '{} {}:{:02}'.format(_now.date(), _now.hour, _now.minute),
+            'shots': self.shots_of_meds.value(),
+            'ingredients': _out_data_1,
+            'instruction' : self.instruction_for_meds.toPlainText(),
+            'doctor-name': self.doctor.text(),
+            'template': self.my_paths['template'],
+            'out': self.my_paths['out']
+            }
+
+        print(data_pack)
+            
+        _rv = ExportDialog(data_pack, self).exec_()
+
+        if not _rv:
+            return
+        else:
+            db = QtSql.QSqlDatabase.database('medindex')
+            db.open()
+            _query = QtSql.QSqlQuery(db)
+            
+            # tbl_patient
+            _query.prepare("""\
+                SELECT patient_id FROM tbl_patient WHERE name = (?)
+                """)
+            _query.bindValue(0, data_pack['name'])
+            _query.exec_()
+
+            if _query.next():
+                _patient_id = _query.value(0)
+                print(f"'{data_pack['name']}' exist in patient database")
+            else:
+                _patient_id = None
+                print(f"Adding '{data_pack['name']}' to patient database")
+                _dob = '{}-01-01'.format(datetime.now().year - data_pack['age'])
+                
+                _query.prepare("""\
+                    INSERT INTO tbl_patient VALUES (?, ?, ?, ?)
+                    """)
+                _query.bindValue(0, _patient_id)
+                _query.bindValue(1, data_pack['name'])
+                _query.bindValue(2, _dob)
+                _query.bindValue(3, data_pack['sex'][0])
+
+                if _query.exec_():
+                    print("Successful add '{}' to patient database".format(data_pack['name']))
+                else:
+                    print("Failed to add '{}' to patient database".format(data_pack['name']))
+                    return
+            
+            # tbl_doctor
+            _query.prepare("""\
+                SELECT doctor_id FROM tbl_doctor WHERE name = (?)
+                """)
+            _query.bindValue(0, data_pack['doctor-name'])
+            _query.exec_()
+
+            if _query.next():
+                _doctor_id = _query.value(0)
+                print(f"'{data_pack['doctor-name']}' exist in doctor database")
+            else:
+                _doctor_id = None
+                print(f"Adding '{data_pack['doctor-name']}' to doctor database")
+                
+                _query.prepare("""\
+                    INSERT INTO tbl_doctor VALUES (?, ?)
+                    """)
+                _query.bindValue(0, _doctor_id)
+                _query.bindValue(1, data_pack['doctor-name'])
+
+                if _query.exec_():
+                    print("Successful add '{}' to doctor database".format(data_pack['doctor-name']))
+                else:
+                    print("Failed to add '{}' to doctor database".format(data_pack['doctor-name']))
+                    return
+            
+            
+            # tbl_script
+            # get doctor id... again...
+            _query.prepare("""SELECT doctor_id FROM tbl_doctor WHERE name = (?) """)
+            _query.bindValue(0, data_pack['doctor-name'])
+            _query.exec_()
+
+            if _query.next():
+                _doctor_id = _query.value(0)
+                
+            # get patient id... again...
+            _query.prepare("""SELECT patient_id FROM tbl_patient WHERE name = (?) """)
+            _query.bindValue(0, data_pack['name'])
+            _query.exec_()
+
+            if _query.next():
+                _patient_id = _query.value(0)
+
+            # the real thing...
+            _query.prepare("""\
+                INSERT INTO tbl_script VALUES (?, ?, ?, ?, ?)
+                """)
+            _query.bindValue(0, None)
+            _query.bindValue(1, int(_patient_id))
+            _query.bindValue(2, int(_doctor_id))
+            _query.bindValue(3, data_pack['date'])
+            _query.bindValue(4, data_pack['shots'])
+            
+            for _ in _query.boundValues().values():
+                print(_)
+            
+            if _query.exec_():
+                print("Successful add '{}' to script database".format(data_pack['date']))
+            else:
+                print("Failed to add '{}' to script database".format(data_pack['date']))
+                return
+            
+            # tbl_script_item
+            # get patient id... again...
+            _query.prepare("""SELECT script_id FROM tbl_script ORDER BY script_id DESC """)
+            _query.exec_()
+
+            if _query.next():
+                _script_id = _query.value(0)
+            
+            for _x in data_pack['ingredients']:
+                _query.prepare("""\
+                    INSERT INTO tbl_script_item VALUES (?, ?, ?)
+                    """)
+                _query.bindValue(0, _script_id)
+                _query.bindValue(1, _x['med_id'])
+                _query.bindValue(2, _x['mass'])
+
+                if _query.exec_():
+                    print("Successful add '{}' to med database".format(_x['med_id']))
+                else:
+                    print("Failed to add '{}' to med database".format(_x['med_id']))
+                    return
+                
+
+            db.close()
+            pass
+
         
         
-        # Signals
-        self.out_table.cellActivated.connect(on_cell_clicked)
         
-    def set_search_bar(self):
         
-        # Slot
-        def on_search_change(search_string):
-            self.in_data = self.db.search(search_string)
-  
-            # Modify in_table
-            self.update_in_table()
         
-        # Signal
-        self.search_bar.textChanged.connect(on_search_change)
-        
-    def set_add_button(self):
-        self.add_button.clicked.connect(lambda: self.add_to_out_table(0, 0))
-        pass
-        
-    def set_export_btn(self, template_path, out_path):
-        self.btn_export.clicked.connect(lambda: self.export(template_path, out_path))
-    
-    def export(self, template_path, out_path):
-        # Prepare data
-        
-        ingredients = []
-        for i in range(self.out_table.rowCount()):
-            ingredients.append((
-                self.out_table.item(i, 1).text(), 
-                float(self.out_table.item(i, 2).text()),
-                float(self.out_table.item(i, 3).text()))
-                )
-        
-        data = {
-            'patient name': self.patient_name.text(),
-            'patient age': self.patient_age.text(),
-            'patient sex': self.patient_sex.currentText(),
-            'days': self.days_of_meds.text(),
-            'doctor': self.doctor_name.text(),
-            'ingredients': ingredients
-        }
-        
-        # web view
-        web_view = WebView(data, template_path, out_path)
-        rv = web_view.exec_()
-        if not rv:
-            os.remove(out_path)
         
         
         
 """  """
-def main(my_paths):
+def run(my_paths=None):
     # 
+    db1 = QtSql.QSqlDatabase.addDatabase('QSQLITE', 'medindex')
+    db1.setDatabaseName(my_paths['db'])
+    
+    db2 = QtSql.QSqlDatabase.addDatabase('QSQLITE', 'memo')
+    db2.setDatabaseName(':memory:')
     
     # 
     app = QtWidgets.QApplication(sys.argv)
@@ -211,4 +291,4 @@ def main(my_paths):
     app.exec_()
     
 if __name__ == "__main__":
-    main()
+    run()

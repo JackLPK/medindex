@@ -6,45 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>851</width>
+    <height>785</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>MedIndex</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
-    <property name="spacing">
-     <number>9</number>
-    </property>
-    <item>
-     <layout class="QVBoxLayout" name="left_layout">
-      <item>
-       <widget class="QLabel" name="label_7">
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Current List</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTableWidget" name="out_table">
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-       </widget>
-      </item>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="1" column="0">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="label_5">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -65,65 +41,29 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="add_button">
+         <widget class="QPushButton" name="pushButton">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
            </font>
           </property>
           <property name="text">
-           <string>Add</string>
+           <string>PH</string>
           </property>
          </widget>
         </item>
        </layout>
       </item>
       <item>
-       <widget class="QTableWidget" name="in_table">
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-       </widget>
+       <widget class="InTableView" name="in_table_view"/>
       </item>
      </layout>
     </item>
-    <item>
-     <layout class="QVBoxLayout" name="right_layout" stretch="0,1,0">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
-      </property>
+    <item row="1" column="1">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QLabel" name="label_8">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Export</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QFormLayout" name="formLayout">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetFixedSize</enum>
-        </property>
-        <property name="verticalSpacing">
-         <number>16</number>
-        </property>
-        <property name="rightMargin">
-         <number>9</number>
-        </property>
-        <item row="0" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
          <widget class="QLabel" name="label_2">
           <property name="font">
            <font>
@@ -133,10 +73,38 @@
           <property name="text">
            <string>Patient</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_3">
+        <item>
+         <widget class="QLineEdit" name="patient_name_edit">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_patient">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Search</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_8">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -145,16 +113,13 @@
           <property name="text">
            <string>Age</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="0" column="1">
          <widget class="QSpinBox" name="patient_age">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -165,7 +130,7 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
+        <item row="0" column="2">
          <widget class="QLabel" name="label_4">
           <property name="font">
            <font>
@@ -175,84 +140,73 @@
           <property name="text">
            <string>Sex</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="0" column="3">
          <widget class="QComboBox" name="patient_sex">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
           <property name="font">
            <font>
             <pointsize>10</pointsize>
            </font>
           </property>
-          <property name="editable">
-           <bool>false</bool>
-          </property>
-          <item>
-           <property name="text">
-            <string>男</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>女</string>
-           </property>
-          </item>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_5">
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_6">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
            </font>
           </property>
           <property name="text">
-           <string>Days</string>
+           <string>Shots</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
-         <widget class="QSpinBox" name="days_of_meds">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="shots_of_meds">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
            </font>
           </property>
           <property name="maximum">
-           <number>999</number>
+           <number>500</number>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
+        <item row="2" column="0" colspan="2">
+         <widget class="QLabel" name="label_9">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
           </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
+          <property name="text">
+           <string>Organisation</string>
           </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>0</width>
-            <height>13</height>
-           </size>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
-         </spacer>
+         </widget>
         </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_6">
+        <item row="2" column="2" colspan="2">
+         <widget class="QLineEdit" name="organisation">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" colspan="2">
+         <widget class="QLabel" name="label_10">
           <property name="font">
            <font>
             <pointsize>10</pointsize>
@@ -261,75 +215,100 @@
           <property name="text">
            <string>Doctor</string>
           </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="doctor_name">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="maxLength">
-           <number>100</number>
-          </property>
-          <property name="clearButtonEnabled">
-           <bool>false</bool>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="patient_name">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
+        <item row="3" column="2" colspan="2">
+         <widget class="QLineEdit" name="doctor">
           <property name="font">
            <font>
-            <pointsize>10</pointsize>
+            <pointsize>12</pointsize>
            </font>
-          </property>
-          <property name="statusTip">
-           <string/>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="maxLength">
-           <number>100</number>
           </property>
          </widget>
         </item>
        </layout>
       </item>
-      <item alignment="Qt::AlignRight">
-       <widget class="QPushButton" name="btn_export">
-        <property name="maximumSize">
-         <size>
-          <width>177</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Export</string>
-        </property>
-       </widget>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QLabel" name="label_7">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Instructions</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="instruction_for_meds">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="pushButton_4">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>PH</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_clear">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Clear</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_export">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Export</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
      </layout>
+    </item>
+    <item row="0" column="0">
+     <widget class="OutTableView" name="out_table_view"/>
+    </item>
+    <item row="0" column="1">
+     <widget class="SideTableView" name="side_table_view"/>
     </item>
    </layout>
   </widget>
@@ -338,13 +317,30 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>26</height>
+     <width>851</width>
+     <height>25</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>InTableView</class>
+   <extends>QTableView</extends>
+   <header>medindex.gui.intableview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OutTableView</class>
+   <extends>QTableView</extends>
+   <header>medindex.gui.outtableview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SideTableView</class>
+   <extends>QTableView</extends>
+   <header>medindex.gui.sidetableview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
